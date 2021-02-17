@@ -1,0 +1,136 @@
+---
+title: "Exam 1 Practice"
+output: html_document
+---
+1. Import this dataset into R and inspect the first several rows of your data
+Reading data in and inspecting
+```{r setup, include=FALSE}
+ Data<-read.csv('Exam_1_Practice_Data.csv')
+head(Data)
+
+plot(x=Data$x1, y=Data$y)
+plot(x=Data$x2, y=Data$y)
+plot(x=Data$x3, y=Data$y)
+```
+2. Fit a linear model that assumes your response is a function of x1, x2, and x3. Include an interaction between x1 and x2 only (i.e., do not include an interaction between your categorical variables and any other variables).
+
+```{r}
+fit <- lm(y~x1*x2 + x3, data = Data)
+summary(fit)
+```
+
+
+3. Calculate residuals by hand (i.e., do not use the resid() function).
+
+y= b0 + b1 * x1 + b2 * x2 + b3 * x3b + b4 * x3c + b5 x1 * x2 
+
+```{r}
+#since we have a categorical we have to set up the ifelse 
+Data$b <- ifelse(Data$x3 == 'b', 1, 0)
+Data$c <- ifelse(Data$x3 == 'c', 1, 0)
+# then we store our coefficients so we can index them 
+b<-coef(fit)
+print(b)
+#predicting the new values 
+predicting<-b[1]+b[2]*Data$x1+b[3]*Data$x2+b[4]*Data$b+b[5]*Data$c+b[6]*Data$x1*Data$x2
+res<-Data$y-predicting
+summary(res)
+```
+
+
+4. Interpret the effect of variable x2 when x1 = -1
+
+y= b0 + b1 * x1 + b2 * x2 + b3 * x3b + b4 * x3c + b5 x1 * x2 
+
+We just want to look at the rate of change of x2 so ignore the other instances of x1 
+
+b2 * x2 + b5 x1 * x2 
+
+x2(b2+b5*-1)
+
+* remember that the coeff will be one higher than the b number shown * 
+
+```{r}
+rate<-1*(b[3]-b[6])
+print(rate)
+```
+
+5. Interpret the effect of variable x2 when x1 = 1
+
+```{r}
+rate<-1*(b[3]+b[6])
+print(rate)
+```
+
+6. Plot predicted y against the observed range of x2. Assume level ‘a’ of your categorical variable and fix x1 at its mean.
+
+The equation
+y= b0 + b1 * x1 + b2 * x2 + b3 * x3b + b4 * x3c + b5 x1 * x2 
+So we assume level ‘a’ of your categorical variable so x3b & x3c go away 
+
+y= b0 + b1 * x1 + b2 * x2 + b5 x1 * x2
+
+Find the mean of x1
+
+```{r}
+x1mean<-mean(Data$x1)
+```
+
+plug it in to get expected 
+
+```{r}
+
+ExpectedY<- b[1] + b[2] * x1mean + b[3] * Data$x2 + b[6] * x1mean * Data$x2
+```
+plot 
+
+```{r}
+plot(x = Data$x2, y = ExpectedY, type = 'l', xlab = 'x2', ylab = 'y')
+```
+
+7. Interpret the effect of variable x3 *** Your just looking for the coefficients***
+
+x3b = 0.007803951
+x3c = -0.210478885
+
+When all else is held constant
+
+```{r}
+print(b)
+
+```
+
+8. Describe how R codes the categorical variable x3. Demonstrate by reporting the first 5 values of variables derived from x3
+
+R create k-1 dummy variables. A is set aside as a reference. When x3 is A X3b & x3c are zero. A dummy variable is created for when x3 equals b and when x3 equals c. When x3 is b, x3b is 1 x3c is zero. When x3 is c, x3b is 0 and x3c is 1.
+
+```{r}
+cbind(Data$x3[1:5],
+  ifelse(Data$x3 == 'b', 1, 0)[1:5],
+  ifelse(Data$x3 == 'c', 1, 0)[1:5])
+```
+
+9. Derive the test statistic and p-value associated with variable x2. What is the null hypothesis assumed by the lm() function? Do we reject or fail to reject this null hypothesis?
+
+the coefficient/std.error
+
+```{r}
+ts <- coef(fit)[3] / summary(fit)[['coefficients']][3, 2]
+print(ts)
+summary(fit)
+```
+
+
+```{r}
+
+#df = n − k degrees of freedom, where k is the number of regression coefficients in your linear model.
+dfs<-100 - 6
+pt(ts, df = dfs ) * 2
+```
+
+```{r}
+summary(fit)[['coefficients']][3, 4]
+```
+
+#We reject the null hypothesis because the p-value is smaller than any reasonable α.
+
