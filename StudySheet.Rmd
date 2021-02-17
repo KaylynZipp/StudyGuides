@@ -1,0 +1,165 @@
+---
+title: "Study Sheet"
+output: html_document
+---
+
+Calculating Residuals 
+```{r setup, include=FALSE}
+Data<-read.csv('Exam_1_Practice_Data.csv')
+head(Data)
+
+#Simple model 
+fit1<-lm(y~x1+x2, Data)
+summary(fit1)
+z<-coef(fit1)
+
+# y = b0 + b1 * x1 + b2 * x2
+
+pred1<-z[1]+z[2]*Data$x1+z[3]*Data$x2
+res1<-Data$y-pred1
+check1<-resid(fit1)
+summary(check1)
+summary(res1)
+
+#More complex 
+fit1<-lm(y~x1+x2*x3, Data)
+summary(fit1)
+z<-coef(fit1)
+z
+
+#y = b0 + b1 * x1 + b2 * x2 + b3*x3b + b4*x3c + b5 *x2 * x3b + b6 *x2 *x3c 
+pred1<-z[1]+z[2]*Data$x1+z[3]*Data$x2+z[4]*Data$b + z[5]*Data$c + z[6]*Data$x2*Data$b+ z[7]*Data$x2*Data$c
+res1<-Data$y-pred1
+check1<-resid(fit1)
+summary(check1)
+summary(res1)
+
+
+```
+
+Exploring the distributions
+
+```{r}
+#Discrete Uniform distribution 
+
+#PMF - counting variables 
+
+#f(y|a,b) = 1 / b-a + 1 where a and b are the bounds 
+#so if a was 20 and b was 63 the probability of any one counted value would be 
+
+probs<-1/(63-20+1) # 0.02272727
+
+# Expected value: Intuitively, we can think of this as a weighted average: we multiply all possible values of Y by its associated probability.
+
+a<-seq(20,63,1)
+Expected<-sum(a*probs)
+
+# Variance: ((b-a+1)^2 -1 )/ 12
+Var<-((63-20+1)^2 -1 )/ 12
+
+Samples<-sample(x = 20:63, size = 10000, replace = T)
+mean(Samples)
+var(Samples)
+
+
+
+```
+
+```{r}
+#Gaussian 
+
+#His example 
+mu <- 5 # theoretical expected value
+v <- 2 # theoretical variance
+y <- 5 # realization of a random variable
+# plug these values into the PDF
+1 / (sqrt(2 * pi * v)) * exp(- (y - mu) ^ 2 / (2 * v))
+
+
+mu <- 27 # theoretical expected value
+v <- 10 # theoretical variance
+y <- 23 # realization of a random variable
+# plug these values into the PDF
+1 / (sqrt(2 * pi * v)) * exp(- (y - mu) ^ 2 / (2 * v))
+
+# Realizations further from the mean should have lower probability 
+
+mu <- 27 # theoretical expected value
+v <- 10 # theoretical variance
+y <- 10 # realization of a random variable
+# plug these values into the PDF
+1 / (sqrt(2 * pi * v)) * exp(- (y - mu) ^ 2 / (2 * v))
+
+
+#So let’s plot these probability densities across a range of potential values
+mu <- 27 # theoretical expected value
+v <- 10 # theoretical variance
+# potential realizations of Y
+y <- seq(from = 10, to = 40, length.out = 100)
+# probability density function evaluated at y, mu, and v
+dens <- 1 / (sqrt(2 * pi * v)) * exp(- (y - mu) ^ 2 / (2 * v))
+
+plot(x = y, y = dens, ylab = 'Probability density',
+xlab = 'y', cex.axis = 1.5, cex.lab = 1.5, type = 'l')
+
+# Computing Gaussian Standard error 
+sqrt((sum((bbwo$ha - (coef(fit)[1] + coef(fit)[2] * bbwo$years)) ^ 2) /
+(nrow(bbwo) - 2)) / sum((bbwo$years - mean(bbwo$years)) ^ 2))
+```
+
+```{r}
+#Student t 
+
+y <- seq(from = -5, to = 5, length.out = 100)
+plot(x = y, y = dt(x = y, df = Inf), type = 'l',
+ylab = 'Probability density', cex.lab = 1.5,
+cex.axis = 1.5)
+lines(x = y, y = dt(x = y, df = 10), col = 'red')
+lines(x = y, y = dt(x = y, df = 3), col = 'blue')
+
+#Note: the dt() function does all the hard work of evaluating the PDF on
+#the previous slide. Plug values in to see for yourself. So can use this for Gaussian 
+```
+
+
+```{r}
+#Calculating p-values 
+
+#Ho B1 = 0
+#h1 b1 >1
+1 - pnorm(1.64, mean = 0, sd = 1)
+
+#Visualizing it 
+
+y <- seq(from = -3, to = 3, length.out = 100)
+plot(x = y, y = dnorm(x = y), type = 'l',
+ylab = 'Probability density',
+cex.axis = 1.5, cex.lab = 1.5)
+abline(v = 1.64, lty = 2)
+```
+
+
+```{r}
+#Calculating test statistics
+
+# estimate of slope coefficient
+b_1 <- coef(fit)[2]
+# estimated standard error
+s_b <- summary(fit)[['coefficients']]['years', 'Std. Error']
+# null hypothesis
+B_1 <- 0
+# test statistic
+t <- (b_1 - B_1) / s_b
+
+#This test statistic is t-distributed with ν = n − k degrees of freedom. Where k is the number of coefficients
+
+pt(q = -abs(t), df = 45) + (1 - pt(q = abs(t), df = 45))
+
+
+
+```
+
+
+
+
+
